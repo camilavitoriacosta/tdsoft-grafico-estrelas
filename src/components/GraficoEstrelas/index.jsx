@@ -13,8 +13,17 @@ import Chart from 'chart.js/auto';
  *     Além disso, usem dos componentes que forem necessários, para issio importem o pacote junto aos "imports".
  */
 export function GraficoEstrelas(props) {
+  //obtém a semana do ano de uma data
+  function obterNumeroSemana(props, index) {
+    const data = props.estrelas[index].starred_at;
+
+    const firstDayOfYear = new Date(data.getFullYear(), 0, 1);
+    const pastDaysOfYear = (data - firstDayOfYear) / 86400000;
+    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+  }
+
   function obterDia(props, index) {
-    return props.estrelas[index].starred_at.getDay();
+    return props.estrelas[index].starred_at.getDate();
   }
 
   function obterAno(props, index) {
@@ -27,6 +36,15 @@ export function GraficoEstrelas(props) {
 
   function unique(value, index, self) {
     return self.indexOf(value) === index;
+  }
+
+  //obtém a semana do ano de uma data
+  function obterNumeroSemana(props, index) {
+    const data = props.estrelas[index].starred_at;
+
+    const firstDayOfYear = new Date(data.getFullYear(), 0, 1);
+    const pastDaysOfYear = (data - firstDayOfYear) / 86400000;
+    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
   }
 
   const options = {
@@ -48,13 +66,37 @@ export function GraficoEstrelas(props) {
           obterDia(props, index) + '/' + obterMes(props, index) + '/' + obterAno(props, index);
         dias.push(dia);
       }
-
       labels = dias.filter(unique);
+
       for (let index = 0; index < labels.length; index++) {
         const repeticao = props.estrelas.filter(
           (estrela) => labels[index] === estrela.starred_at
         ).length;
         contagem.push(repeticao);
+        let cont = 0;
+        for (let index2 = 0; index2 < dias.length; index2++) {
+          if (labels[index] === dias[index2]) {
+            cont++;
+          }
+        }
+        contagem.push(cont);
+      }
+    } else if (props.agrupamento === 'semana') {
+      for (let index = 0; index < props.estrelas.length; index++) {
+        const semana = obterNumeroSemana(props, index) + '/' + obterAno(props, index);
+        dias.push(semana);
+      }
+
+      labels = dias.filter(unique);
+
+      for (let index = 0; index < labels.length; index++) {
+        let cont = 0;
+        for (let index2 = 0; index2 < dias.length; index2++) {
+          if (labels[index] === dias[index2]) {
+            cont++;
+          }
+        }
+        contagem.push(cont);
       }
     } else if (props.agrupamento === 'mes') {
       for (let index = 0; index < props.estrelas.length; index++) {
@@ -115,8 +157,6 @@ export function GraficoEstrelas(props) {
       },
     ],
   };
-
-  console.log(data);
 
   return (
     <div className="grafico">
