@@ -1,5 +1,5 @@
 import React from 'react';
-import './index.css'
+import './index.css';
 import PropTypes from 'prop-types';
 import { Line } from 'react-chartjs-2';
 import Chart from 'chart.js/auto';
@@ -20,14 +20,14 @@ export function GraficoEstrelas(props) {
   function obterAno(props, index) {
     return props.estrelas[index].starred_at.getFullYear();
   }
-  
+
   function obterMes(props, index) {
     return props.estrelas[index].starred_at.getMonth() + 1;
   }
 
-  function unique(value, index, self) { 
+  function unique(value, index, self) {
     return self.indexOf(value) === index;
-}
+  }
 
   const options = {
     responsive: true,
@@ -35,24 +35,74 @@ export function GraficoEstrelas(props) {
       legend: true,
     },
   };
-  
-  let labels = [];
-  const dias= [];
-  const contagem = [];
 
-  if(props.agrupamento === 'dia'){
-    for (let index = 0; index < props.estrelas.length; index++) {
-      const dia = obterDia(props, index) + "/" + obterMes(props, index) + "/" + obterAno(props, index);
-      dias.push(dia);
+  function obterDados() {
+    let labels = [];
+    const dias = [];
+    const meses = [];
+    const contagem = [];
+
+    if (props.agrupamento === 'dia') {
+      for (let index = 0; index < props.estrelas.length; index++) {
+        const dia =
+          obterDia(props, index) + '/' + obterMes(props, index) + '/' + obterAno(props, index);
+        dias.push(dia);
+      }
+
+      labels = dias.filter(unique);
+      for (let index = 0; index < labels.length; index++) {
+        const repeticao = props.estrelas.filter(
+          (estrela) => labels[index] === estrela.starred_at
+        ).length;
+        contagem.push(repeticao);
+      }
+    } else if (props.agrupamento === 'mes') {
+      for (let index = 0; index < props.estrelas.length; index++) {
+        meses.push(obterMes(props, index));
+      }
+
+      labels = meses.filter(unique);
+      labels.sort(function (a, b) {
+        return a - b;
+      });
+
+      for (let index = 0; index < labels.length; index++) {
+        let contador = 0;
+        props.estrelas.forEach((estrela) => {
+          if (estrela.starred_at.getMonth() == labels[index]) {
+            contador++;
+          }
+        });
+        contagem.push(contador);
+      }
+    } else if (props.agrupamento === 'ano') {
+      let anos = [];
+      for (let index = 0; index < props.estrelas.length; index++) {
+        anos.push(obterAno(props, index));
+      }
+
+      labels = anos.filter(unique);
+      labels.sort(function (a, b) {
+        return a - b;
+      });
+
+      for (let index = 0; index < labels.length; index++) {
+        let contador = 0;
+        props.estrelas.forEach((estrela) => {
+          if (estrela.starred_at.getFullYear() == labels[index]) {
+            contador++;
+          }
+        });
+        contagem.push(contador);
+      }
     }
 
-    labels = dias.filter(unique);
-
-    for (let index = 0; index < labels.length; index++) {
-      const repeticao = props.estrelas.filter(estrela => labels[index] === estrela.starred_at).length;
-      contagem.push(repeticao);
-    }
+    return { labels: labels, contagem: contagem };
   }
+
+  const dados = obterDados();
+  const labels = dados.labels;
+  const contagem = dados.contagem;
 
   const data = {
     labels,
@@ -67,10 +117,12 @@ export function GraficoEstrelas(props) {
   };
 
   console.log(data);
- 
-  return <div className='grafico'>
-    <Line options={options} data={data} />
-  </div>;
+
+  return (
+    <div className="grafico">
+      <Line options={options} data={data} />
+    </div>
+  );
 }
 
 // Definição dos tipos das propriedades recebidas.
