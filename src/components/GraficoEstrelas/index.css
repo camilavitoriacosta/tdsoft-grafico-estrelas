@@ -1,4 +1,5 @@
 .grafico {
   display: flex;
-  height: 600px;
+  width: 95vw;
+  height: 90vh;
 }

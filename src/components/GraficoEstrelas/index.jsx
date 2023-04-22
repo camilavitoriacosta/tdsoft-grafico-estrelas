@@ -38,105 +38,59 @@ export function GraficoEstrelas(props) {
     return self.indexOf(value) === index;
   }
 
-  //obtém a semana do ano de uma data
-  function obterNumeroSemana(props, index) {
-    const data = props.estrelas[index].starred_at;
-
-    const firstDayOfYear = new Date(data.getFullYear(), 0, 1);
-    const pastDaysOfYear = (data - firstDayOfYear) / 86400000;
-    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-  }
-
-  const options = {
-    responsive: true,
-    plugins: {
-      legend: true,
-    },
-  };
-
   function obterDados() {
     let labels = [];
-    const dias = [];
-    const meses = [];
-    const contagem = [];
+    let contagem = [];
+
+    function obterLabels(agrupamento) {
+      const titulos = [];
+      for (let index = 0; index < props.estrelas.length; index++) {
+        titulos.push(agrupamento(props, index));
+      }
+
+      return {
+        labels: titulos.filter(unique).sort(function (a, b) {
+          return a - b;
+        }),
+        dadosAgrupamento: titulos,
+      };
+    }
+
+    function obterContagemPorAgrupamento(labels, dadosAgrupamento) {
+      console.log(dadosAgrupamento);
+      let contagemAgrupamento = [];
+      for (let index = 0; index < labels.length; index++) {
+        contador = dadosAgrupamento.filter(dado => dado === labels[index]).length;
+        contagemAgrupamento.push(contador);
+      }
+
+      return contagemAgrupamento;
+    }
 
     if (props.agrupamento === 'dia') {
-      for (let index = 0; index < props.estrelas.length; index++) {
-        const dia =
-          obterDia(props, index) + '/' + obterMes(props, index) + '/' + obterAno(props, index);
-        dias.push(dia);
-      }
-      labels = dias.filter(unique);
-
-      for (let index = 0; index < labels.length; index++) {
-        const repeticao = props.estrelas.filter(
-          (estrela) => labels[index] === estrela.starred_at
-        ).length;
-        contagem.push(repeticao);
-        let cont = 0;
-        for (let index2 = 0; index2 < dias.length; index2++) {
-          if (labels[index] === dias[index2]) {
-            cont++;
-          }
-        }
-        contagem.push(cont);
-      }
-    } else if (props.agrupamento === 'semana') {
-      for (let index = 0; index < props.estrelas.length; index++) {
-        const semana = obterNumeroSemana(props, index) + '/' + obterAno(props, index);
-        dias.push(semana);
-      }
-
-      labels = dias.filter(unique);
-
-      for (let index = 0; index < labels.length; index++) {
-        let cont = 0;
-        for (let index2 = 0; index2 < dias.length; index2++) {
-          if (labels[index] === dias[index2]) {
-            cont++;
-          }
-        }
-        contagem.push(cont);
-      }
-    } else if (props.agrupamento === 'mes') {
-      for (let index = 0; index < props.estrelas.length; index++) {
-        meses.push(obterMes(props, index));
-      }
-
-      labels = meses.filter(unique);
-      labels.sort(function (a, b) {
-        return a - b;
-      });
-
-      for (let index = 0; index < labels.length; index++) {
-        let contador = 0;
-        props.estrelas.forEach((estrela) => {
-          if (estrela.starred_at.getMonth() == labels[index]) {
-            contador++;
-          }
-        });
-        contagem.push(contador);
-      }
-    } else if (props.agrupamento === 'ano') {
-      let anos = [];
-      for (let index = 0; index < props.estrelas.length; index++) {
-        anos.push(obterAno(props, index));
-      }
-
-      labels = anos.filter(unique);
-      labels.sort(function (a, b) {
-        return a - b;
-      });
-
-      for (let index = 0; index < labels.length; index++) {
-        let contador = 0;
-        props.estrelas.forEach((estrela) => {
-          if (estrela.starred_at.getFullYear() == labels[index]) {
-            contador++;
-          }
-        });
-        contagem.push(contador);
-      }
+      let resultado = obterLabels(
+        (props, index) =>
+          obterDia(props, index) + '/' + obterMes(props, index) + '/' + obterAno(props, index)
+      );
+      labels = resultado.labels;
+      contagem = obterContagemPorAgrupamento(labels, resultado.dadosAgrupamento);
+    } 
+    else if (props.agrupamento === 'semana') {
+      let resultado = obterLabels(
+        (props, index) => obterNumeroSemana(props, index) + '/' + obterAno(props, index)
+      );
+      labels = resultado.labels;
+      contagem = obterContagemPorAgrupamento(labels, resultado.dadosAgrupamento);
+    } 
+    else if (props.agrupamento === 'mes') {
+      let resultado = obterLabels((props, index) => obterMes(props, index));
+      labels = resultado.labels;
+      contagem = obterContagemPorAgrupamento(labels, resultado.dadosAgrupamento);
+    } 
+    else if (props.agrupamento === 'ano') {
+      let resultado = obterLabels((props, index) => obterAno(props, index));
+      labels = resultado.labels;
+      contagem = obterContagemPorAgrupamento(labels, resultado.dadosAgrupamento);
     }
 
     return { labels: labels, contagem: contagem };
@@ -145,6 +99,13 @@ export function GraficoEstrelas(props) {
   const dados = obterDados();
   const labels = dados.labels;
   const contagem = dados.contagem;
+
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: true,
+    },
+  };
 
   const data = {
     labels,
