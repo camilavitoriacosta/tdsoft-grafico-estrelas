@@ -57,10 +57,9 @@ export function GraficoEstrelas(props) {
     }
 
     function obterContagemPorAgrupamento(labels, dadosAgrupamento) {
-      console.log(dadosAgrupamento);
       let contagemAgrupamento = [];
       for (let index = 0; index < labels.length; index++) {
-        contador = dadosAgrupamento.filter(dado => dado === labels[index]).length;
+        let contador = dadosAgrupamento.filter(dado => dado === labels[index]).length;
         contagemAgrupamento.push(contador);
       }
 
