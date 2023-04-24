@@ -38,97 +38,68 @@ export function GraficoEstrelas(props) {
     return self.indexOf(value) === index;
   }
 
+  function obterLabels(agrupamento) {
+    const titulos = [];
+    for (let index = 0; index < props.estrelas.length; index++) {
+      titulos.push(agrupamento(props, index));
+    }
+
+    return {
+      labels: titulos.filter(unique).sort(function (a, b) {
+        return a - b;
+      }),
+      dadosAgrupamento: titulos,
+    };
+  }
+
+  function obterContagemPorAgrupamento(labels, dadosAgrupamento) {
+    let contagemAgrupamento = [];
+    let contador = 0;
+    let acumulador = 0;
+
+    for (let index = 0; index < labels.length; index++) {
+      contador = dadosAgrupamento.filter(dado => dado === labels[index]).length;
+
+      if (props.cumulativa){
+        acumulador+=contador;
+        contador = acumulador;
+      }
+
+      if(props.escala == 'log'){
+        contador = Math.log10(contador);
+      }  
+
+      contagemAgrupamento.push(contador);
+    }
+    return contagemAgrupamento;
+  }
+
   function obterDados() {
     let labels = [];
     let contagem = [];
-
-    function obterLabels(agrupamento) {
-      const titulos = [];
-      for (let index = 0; index < props.estrelas.length; index++) {
-        titulos.push(agrupamento(props, index));
-      }
-
-      return {
-        labels: titulos.filter(unique).sort(function (a, b) {
-          return a - b;
-        }),
-        dadosAgrupamento: titulos,
-      };
-    }
-
-    function obterContagemPorAgrupamento(labels, dadosAgrupamento) {
-      let contagemAgrupamento = [];
-      for (let index = 0; index < labels.length; index++) {
-        let contador = dadosAgrupamento.filter(dado => dado === labels[index]).length;
-        contagemAgrupamento.push(contador);
-      }
-
-      return contagemAgrupamento;
-    }
-
-    function obterContagemPorAgrupamentoLogaritmo(labels, dadosAgrupamento) {
-      let contagemAgrupamento = [];
-      let contador = 0;
-      for (let index = 0; index < labels.length; index++) {
-        contador += dadosAgrupamento.filter(dado => dado === labels[index]).length;
-        contagemAgrupamento.push(contador);
-      }
-      return contagemAgrupamento.map((estrelas) => Math.log10(estrelas));
-    }
+    let resultado;
 
     if (props.agrupamento === 'dia') {
-      let resultado = obterLabels((props, index) => obterDia(props, index) + '/' + obterMes(props, index) + '/' + obterAno(props, index));
-      labels = resultado.labels;
-
-      if (props.escala === 'linear') {
-        contagem = obterContagemPorAgrupamento(labels, resultado.dadosAgrupamento);
-      }
-
-      else if (props.escala === 'log') {
-        contagem = obterContagemPorAgrupamentoLogaritmo(labels, resultado.dadosAgrupamento);
-      }
+      resultado= obterLabels((props, index) => obterDia(props, index) + '/' + obterMes(props, index) + '/' + obterAno(props, index));
     }
 
     else if (props.agrupamento === 'semana') {
-      let resultado = obterLabels((props, index) => obterNumeroSemana(props, index) + '/' + obterAno(props, index));
-      labels = resultado.labels;
-
-      if (props.escala === 'linear') {
-        contagem = obterContagemPorAgrupamento(labels, resultado.dadosAgrupamento);
-      }
-
-      else if (props.escala === 'log') {
-        contagem = obterContagemPorAgrupamentoLogaritmo(labels, resultado.dadosAgrupamento);
-      }
+      resultado= obterLabels((props, index) => obterNumeroSemana(props, index) + '/' + obterAno(props, index));
     }
 
     else if (props.agrupamento === 'mes') {
-      let resultado = obterLabels((props, index) => obterMes(props, index) + '/' + obterAno(props, index));
-      labels = resultado.labels;
-
-      if (props.escala === 'linear') {
-        contagem = obterContagemPorAgrupamento(labels, resultado.dadosAgrupamento);
-      }
-
-      else if (props.escala === 'log') {
-        contagem = obterContagemPorAgrupamentoLogaritmo(labels, resultado.dadosAgrupamento);
-      }
+      resultado= obterLabels((props, index) => obterMes(props, index) + '/' + obterAno(props, index));
     } 
 
     else if (props.agrupamento === 'ano') {
-      let resultado = obterLabels((props, index) => obterAno(props, index));
-      labels = resultado.labels;
-
-      if (props.escala === 'linear') {
-        contagem = obterContagemPorAgrupamento(labels, resultado.dadosAgrupamento);
-      }
-
-      if (props.escala === 'log') {
-        contagem = obterContagemPorAgrupamentoLogaritmo(labels, resultado.dadosAgrupamento);
-      }
+      resultado= obterLabels((props, index) => obterAno(props, index));
     }
 
-    return { labels: labels, contagem: contagem };
+    labels = resultado.labels;
+    
+    contagem = obterContagemPorAgrupamento(labels, resultado.dadosAgrupamento);
+    
+    return { labels: labels, contagem: contagem};
   }
 
   const dados = obterDados();
@@ -171,10 +142,12 @@ GraficoEstrelas.propTypes = {
   ).isRequired,
   agrupamento: PropTypes.oneOf(['dia', 'semana', 'mes', 'ano']),
   escala: PropTypes.oneOf(['linear', 'log']),
+  cumulativa: PropTypes.bool
 };
 
 // Definição dos valores padrão das propriedades.
 GraficoEstrelas.defaultProps = {
   agrupamento: 'dia',
   escala: 'linear',
+  cumulativa: false
 };
