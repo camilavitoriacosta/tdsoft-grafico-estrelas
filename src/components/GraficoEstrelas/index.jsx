@@ -66,30 +66,66 @@ export function GraficoEstrelas(props) {
       return contagemAgrupamento;
     }
 
+    function obterContagemPorAgrupamentoLogaritmo(labels, dadosAgrupamento) {
+      let contagemAgrupamento = [];
+      let contador = 0;
+      for (let index = 0; index < labels.length; index++) {
+        contador += dadosAgrupamento.filter(dado => dado === labels[index]).length;
+        contagemAgrupamento.push(contador);
+      }
+      return contagemAgrupamento.map((estrelas) => Math.log10(estrelas));
+    }
+
     if (props.agrupamento === 'dia') {
-      let resultado = obterLabels(
-        (props, index) =>
-          obterDia(props, index) + '/' + obterMes(props, index) + '/' + obterAno(props, index)
-      );
+      let resultado = obterLabels((props, index) => obterDia(props, index) + '/' + obterMes(props, index) + '/' + obterAno(props, index));
       labels = resultado.labels;
-      contagem = obterContagemPorAgrupamento(labels, resultado.dadosAgrupamento);
-    } 
+
+      if (props.escala === 'linear') {
+        contagem = obterContagemPorAgrupamento(labels, resultado.dadosAgrupamento);
+      }
+
+      else if (props.escala === 'log') {
+        contagem = obterContagemPorAgrupamentoLogaritmo(labels, resultado.dadosAgrupamento);
+      }
+    }
+
     else if (props.agrupamento === 'semana') {
-      let resultado = obterLabels(
-        (props, index) => obterNumeroSemana(props, index) + '/' + obterAno(props, index)
-      );
+      let resultado = obterLabels((props, index) => obterNumeroSemana(props, index) + '/' + obterAno(props, index));
       labels = resultado.labels;
-      contagem = obterContagemPorAgrupamento(labels, resultado.dadosAgrupamento);
-    } 
+
+      if (props.escala === 'linear') {
+        contagem = obterContagemPorAgrupamento(labels, resultado.dadosAgrupamento);
+      }
+
+      else if (props.escala === 'log') {
+        contagem = obterContagemPorAgrupamentoLogaritmo(labels, resultado.dadosAgrupamento);
+      }
+    }
+
     else if (props.agrupamento === 'mes') {
-      let resultado = obterLabels((props, index) => obterMes(props, index));
+      let resultado = obterLabels((props, index) => obterMes(props, index) + '/' + obterAno(props, index));
       labels = resultado.labels;
-      contagem = obterContagemPorAgrupamento(labels, resultado.dadosAgrupamento);
+
+      if (props.escala === 'linear') {
+        contagem = obterContagemPorAgrupamento(labels, resultado.dadosAgrupamento);
+      }
+
+      else if (props.escala === 'log') {
+        contagem = obterContagemPorAgrupamentoLogaritmo(labels, resultado.dadosAgrupamento);
+      }
     } 
+
     else if (props.agrupamento === 'ano') {
       let resultado = obterLabels((props, index) => obterAno(props, index));
       labels = resultado.labels;
-      contagem = obterContagemPorAgrupamento(labels, resultado.dadosAgrupamento);
+
+      if (props.escala === 'linear') {
+        contagem = obterContagemPorAgrupamento(labels, resultado.dadosAgrupamento);
+      }
+
+      if (props.escala === 'log') {
+        contagem = obterContagemPorAgrupamentoLogaritmo(labels, resultado.dadosAgrupamento);
+      }
     }
 
     return { labels: labels, contagem: contagem };
@@ -110,7 +146,7 @@ export function GraficoEstrelas(props) {
     labels,
     datasets: [
       {
-        label: 'Dataset 1',
+        label: 'Stargazers',
         data: contagem,
         borderColor: 'rgb(255, 99, 132)',
         backgroundColor: 'rgba(255, 99, 132, 0.5)',
